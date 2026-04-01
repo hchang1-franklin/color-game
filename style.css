@@ -8,374 +8,307 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    padding: 20px;
     color: #333;
 }
 
+.hidden {
+    display: none !important;
+}
+
+/* ── 登入介面 ── */
+.login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+
+.login-card h1 {
+    text-align: center;
+    font-size: 1.8em;
+    color: #667eea;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+.required {
+    color: #e74c3c;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 1em;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.room-row {
+    display: flex;
+    gap: 10px;
+}
+
+.room-row input {
+    flex: 1;
+}
+
+/* ── 按鈕 ── */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-top: 10px;
+    padding: 15px;
+    font-size: 1.1em;
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #555;
+    white-space: nowrap;
+}
+
+.btn-reset {
+    width: 100%;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    margin-top: 20px;
+    padding: 14px;
+    font-size: 1.1em;
+}
+
+/* 錯誤訊息 */
+.error-msg {
+    color: #e74c3c;
+    font-size: 0.95em;
+    min-height: 1.2em;
+    margin-bottom: 5px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* ── 遊戲介面 ── */
+.game-screen {
+    padding: 20px;
+}
+
 .container {
-    max-width: 900px;
+    max-width: 700px;
     margin: 0 auto;
 }
 
-h1 {
+.game-header {
     text-align: center;
-    color: white;
-    margin-bottom: 30px;
-    font-size: 2.5em;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 25px;
 }
 
-/* 玩家選擇區 */
-.player-selection {
+.game-header h1 {
+    color: white;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 8px;
+}
+
+.room-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    color: rgba(255,255,255,0.9);
+    font-size: 1em;
+}
+
+/* 顏色選擇面板 */
+.color-selection-panel {
     background: white;
     border-radius: 15px;
-    padding: 25px;
+    padding: 20px 25px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
-.player-selection h2 {
-    text-align: center;
-    margin-bottom: 20px;
+.color-selection-panel h2 {
     color: #667eea;
+    margin-bottom: 15px;
+    font-size: 1.1em;
 }
 
-.color-buttons {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.color-options {
+    display: flex;
     gap: 15px;
     margin-bottom: 15px;
 }
 
-.color-btn {
-    padding: 15px 25px;
-    font-size: 1.1em;
-    border: 3px solid transparent;
-    border-radius: 10px;
+.color-option {
+    width: 50px;
+    height: 50px;
+    border: 4px solid transparent;
+    border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    color: white;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.color-btn.red {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.color-option:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
 }
 
-.color-btn.blue {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.color-option.selected {
+    border-color: #333;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
+    transform: scale(1.1);
 }
 
-.color-btn.orange {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.color-btn.green {
-    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-}
-
-.color-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.color-btn.selected {
-    border-color: white;
-    box-shadow: 0 0 20px rgba(255,255,255,0.8);
-    transform: scale(1.05);
-}
-
-.hint {
-    text-align: center;
-    color: #666;
-    font-size: 0.9em;
-}
-
-/* 當前玩家顯示 */
-.current-player {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.color-display {
-    padding: 5px 15px;
-    border-radius: 5px;
-    margin-left: 10px;
-}
-
-/* 遊戲統計 */
-.game-stats {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.stat-item {
+.current-color-info {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
-    font-weight: bold;
+    font-size: 0.95em;
+    color: #555;
 }
 
-.progress-bar {
-    flex: 1;
-    height: 25px;
-    background: #e0e0e0;
-    border-radius: 15px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    transition: width 0.3s ease;
-    width: 0%;
+.color-swatch {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    vertical-align: middle;
 }
 
 /* 遊戲板 */
 .game-board {
     background: white;
     border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    padding: 20px 25px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 .floor {
-    margin-bottom: 15px;
-    padding: 15px;
-    background: #f5f5f5;
-    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.floor:last-child {
+    border-bottom: none;
 }
 
 .floor-label {
-    font-weight: bold;
-    margin-bottom: 10px;
+    font-weight: 700;
     color: #667eea;
-    font-size: 1.1em;
+    min-width: 60px;
+    font-size: 0.95em;
 }
 
-.positions {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+.number-boxes {
+    display: flex;
     gap: 10px;
+    flex: 1;
 }
 
-.position {
+.number-box {
+    flex: 1;
     aspect-ratio: 1;
-    border: 3px dashed #ccc;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    max-width: 70px;
+    border: 3px solid #bbb;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2em;
-    background: white;
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    background: #fafafa;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    user-select: none;
 }
 
-.position:hover {
-    transform: scale(1.05);
+.number-box:hover {
+    transform: scale(1.08);
     border-color: #667eea;
-    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 3px 10px rgba(102,126,234,0.3);
 }
 
-.position.filled {
+.number-box.occupied {
     border-style: solid;
     border-width: 3px;
-}
-
-.position.red {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    border-color: #f5576c;
-}
-
-.position.blue {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    border-color: #00f2fe;
-}
-
-.position.orange {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    border-color: #fee140;
-}
-
-.position.green {
-    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-    border-color: #330867;
-}
-
-/* 顏色統計 */
-.color-stats {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
-
-.color-stats h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #667eea;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-}
-
-.stat-card {
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    color: white;
-    font-weight: bold;
-}
-
-.stat-card.red {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-card.blue {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-card.orange {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.stat-card.green {
-    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-}
-
-.stat-label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 1.1em;
-}
-
-.stat-value {
-    display: block;
-    font-size: 2em;
-}
-
-/* 重置按鈕 */
-.reset-btn {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.reset-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* 模態框 */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-content {
-    background: white;
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-    max-width: 500px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.modal-content h2 {
-    color: #667eea;
-    margin-bottom: 20px;
-    font-size: 2em;
-}
-
-#winnerDisplay {
-    margin: 20px 0;
-    font-size: 1.2em;
-}
-
-.winner-item {
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 10px;
-    font-weight: bold;
-    color: white;
-}
-
-.modal-btn {
-    padding: 15px 40px;
-    font-size: 1.1em;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: all 0.3s ease;
-}
-
-.modal-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    color: rgba(0,0,0,0.4);
 }
 
 /* 響應式設計 */
-@media (max-width: 768px) {
-    h1 {
-        font-size: 1.8em;
+@media (max-width: 480px) {
+    .login-card {
+        padding: 25px 20px;
     }
-    
-    .positions {
-        gap: 5px;
-    }
-    
-    .position {
+
+    .game-header h1 {
         font-size: 1.5em;
+    }
+
+    .floor {
+        gap: 8px;
+    }
+
+    .floor-label {
+        min-width: 48px;
+        font-size: 0.85em;
+    }
+
+    .number-box {
+        font-size: 1.1em;
+        border-radius: 6px;
+    }
+
+    .color-option {
+        width: 42px;
+        height: 42px;
     }
 }
