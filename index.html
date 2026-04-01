@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多人顏色選擇遊戲</title>
+    <title>多人即時顏色競爭遊戲</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <!-- 登入介面 -->
     <div class="login-screen" id="loginScreen">
         <div class="login-card">
-            <h1>🎮 多人顏色選擇遊戲</h1>
+            <h1>🎮 多人顏色競爭遊戲</h1>
 
             <div class="form-group">
                 <label for="nicknameInput">玩家暱稱 <span class="required">*</span></label>
@@ -36,21 +36,28 @@
     <div class="game-screen hidden" id="gameScreen">
         <div class="container">
             <div class="game-header">
-                <h1>🎮 多人顏色選擇遊戲</h1>
+                <h1>🎮 多人顏色競爭遊戲</h1>
                 <div class="room-info">
                     <span>房間：<strong id="roomDisplay"></strong></span>
                     <span>玩家：<strong id="nicknameDisplay"></strong></span>
+                    <span class="connection-indicator" id="connectionIndicator">⚪ 連線中...</span>
                 </div>
+            </div>
+
+            <!-- 玩家列表 -->
+            <div class="players-panel">
+                <h2>房間玩家</h2>
+                <div class="players-list" id="playersList"></div>
             </div>
 
             <!-- 顏色選擇 -->
             <div class="color-selection-panel">
                 <h2>選擇你的代表顏色</h2>
                 <div class="color-options">
-                    <button class="color-option" data-color="#FF7575" style="background:#FF7575;"></button>
-                    <button class="color-option" data-color="#FF79BC" style="background:#FF79BC;"></button>
-                    <button class="color-option" data-color="#97CBFF" style="background:#97CBFF;"></button>
-                    <button class="color-option" data-color="#FFC78E" style="background:#FFC78E;"></button>
+                    <button class="color-option" data-color="#FF7575" style="background:#FF7575;" title="#FF7575 粉紅"></button>
+                    <button class="color-option" data-color="#FF79BC" style="background:#FF79BC;" title="#FF79BC 紫粉"></button>
+                    <button class="color-option" data-color="#97CBFF" style="background:#97CBFF;" title="#97CBFF 藍色"></button>
+                    <button class="color-option" data-color="#FFC78E" style="background:#FFC78E;" title="#FFC78E 橘色"></button>
                 </div>
                 <div class="current-color-info">
                     當前顏色：<span id="currentColorSwatch" class="color-swatch"></span>
@@ -58,16 +65,15 @@
                 </div>
             </div>
 
-            <!-- 遊戲板 -->
-            <div class="game-board" id="gameBoard">
-                <!-- 10層樓由 JavaScript 動態生成 -->
-            </div>
+            <!-- 遊戲板（10層從下往上） -->
+            <div class="game-board" id="gameBoard"></div>
 
             <!-- 重設按鈕 -->
             <button class="btn btn-reset" id="resetBtn">🔄 重設</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>
