@@ -1,7 +1,7 @@
 // ── 常數 ──────────────────────────────────────────
 const FLOORS = 10;
-const MAX_PLAYERS = 4;
-const STORAGE_KEY = 'colorGameRooms';
+const MIN_ROOM_ID = 1000000;
+const MAX_ROOM_ID = 9999999;
 
 // ── 玩家狀態 ──────────────────────────────────────
 let currentPlayer = {
@@ -10,42 +10,63 @@ let currentPlayer = {
     color: null
 };
 
-// ── 房間資料操作 (localStorage) ────────────────────
+// 最新遊戲狀態（由伺服器同步）
+let gameState = null;
+let playersList = [];
 
-function loadRooms() {
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    } catch (e) {
-        return {};
+// ── Socket.IO 連線 ─────────────────────────────────
+const socket = io();
+
+socket.on('connect', function() {
+    setConnectionStatus(true);
+});
+
+socket.on('disconnect', function() {
+    setConnectionStatus(false);
+});
+
+// 伺服器廣播：完整遊戲狀態更新
+socket.on('game-state-updated', function(data) {
+    playersList = data.players;
+    gameState = data.gameState;
+    renderPlayersList();
+    renderGameBoard();
+    syncColorSelection();
+});
+
+// 伺服器廣播：新玩家加入
+socket.on('player-joined', function(data) {
+    playersList = data.players;
+    renderPlayersList();
+});
+
+// 伺服器廣播：玩家離開
+socket.on('player-left', function(data) {
+    playersList = data.players;
+    renderPlayersList();
+});
+
+// 房間已滿
+socket.on('room-full', function() {
+    showLoginError('超出人數限制');
+});
+
+// ── 連線狀態 ───────────────────────────────────────
+function setConnectionStatus(connected) {
+    const el = document.getElementById('connectionIndicator');
+    if (!el) return;
+    if (connected) {
+        el.textContent = '🟢 已連線';
+        el.className = 'connection-indicator connected';
+    } else {
+        el.textContent = '🔴 已斷線';
+        el.className = 'connection-indicator disconnected';
     }
 }
 
-function saveRooms(rooms) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(rooms));
-}
-
-function getRoom(roomId) {
-    const rooms = loadRooms();
-    return rooms[roomId] || null;
-}
-
-function saveRoom(roomId, data) {
-    const rooms = loadRooms();
-    rooms[roomId] = data;
-    saveRooms(rooms);
-}
-
-function createEmptyRoom() {
-    return {
-        players: [],
-        gameBoard: Array.from({ length: FLOORS }, () => Array(4).fill(null))
-    };
-}
-
 // ── 登入邏輯 ───────────────────────────────────────
-
 function generateRoomId() {
-    return String(Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000);
+    return String(Math.floor(Math.random() * (MAX_ROOM_ID - MIN_ROOM_ID + 1)) + MIN_ROOM_ID);
 }
 
 function showLoginError(msg) {
@@ -70,81 +91,45 @@ function handleEnterGame() {
         return;
     }
 
-    let room = getRoom(roomId);
-    if (!room) {
-        room = createEmptyRoom();
-    }
-
-    // 同一暱稱視為重新進入（允許）
-    const existingIndex = room.players.findIndex(function(p) { return p.nickname === nickname; });
-    if (existingIndex === -1) {
-        if (room.players.length >= MAX_PLAYERS) {
-            showLoginError('超出人數限制');
-            return;
-        }
-        room.players.push({ nickname: nickname, color: null });
-        saveRoom(roomId, room);
-    }
-
     currentPlayer.nickname = nickname;
     currentPlayer.roomId = roomId;
-    const existing = room.players.find(function(p) { return p.nickname === nickname; });
-    currentPlayer.color = existing ? existing.color : null;
+    currentPlayer.color = null;
 
     showLoginError('');
-    enterGame();
-}
 
-// ── 切換畫面 ───────────────────────────────────────
-
-function enterGame() {
+    // 先切換畫面，再發送 join-room
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('gameScreen').classList.remove('hidden');
 
-    document.getElementById('roomDisplay').textContent = currentPlayer.roomId;
-    document.getElementById('nicknameDisplay').textContent = currentPlayer.nickname;
+    document.getElementById('roomDisplay').textContent = roomId;
+    document.getElementById('nicknameDisplay').textContent = nickname;
 
     initColorOptions();
-    renderGameBoard();
+
+    socket.emit('join-room', { nickname: nickname, roomId: roomId });
 }
 
 // ── 顏色選擇 ───────────────────────────────────────
-
 function initColorOptions() {
-    const buttons = document.querySelectorAll('.color-option');
-    buttons.forEach(function(btn) {
-        btn.classList.remove('selected');
-        // Remove old listener before adding new one
-        btn.replaceWith(btn.cloneNode(true));
+    // 移除舊監聽器（clone and replace）
+    document.querySelectorAll('.color-option').forEach(function(btn) {
+        const clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
     });
 
     document.querySelectorAll('.color-option').forEach(function(btn) {
         btn.addEventListener('click', handleColorSelect);
     });
 
-    if (currentPlayer.color) {
-        applyColorSelection(currentPlayer.color);
-    } else {
-        document.getElementById('currentColorSwatch').style.background = '';
-        document.getElementById('currentColorLabel').textContent = '尚未選擇';
-    }
+    document.getElementById('currentColorSwatch').style.background = '';
+    document.getElementById('currentColorLabel').textContent = '尚未選擇';
 }
 
 function handleColorSelect() {
     const color = this.dataset.color;
     currentPlayer.color = color;
-
-    const room = getRoom(currentPlayer.roomId);
-    if (room) {
-        const player = room.players.find(function(p) { return p.nickname === currentPlayer.nickname; });
-        if (player) {
-            player.color = color;
-            saveRoom(currentPlayer.roomId, room);
-        }
-    }
-
     applyColorSelection(color);
-    renderGameBoard();
+    socket.emit('select-color', { color: color });
 }
 
 function applyColorSelection(color) {
@@ -155,32 +140,64 @@ function applyColorSelection(color) {
     document.getElementById('currentColorLabel').textContent = color;
 }
 
-// ── 遊戲板渲染 ─────────────────────────────────────
+// 當收到伺服器更新時，同步自己的顏色（例如重連後）
+function syncColorSelection() {
+    const me = playersList.find(function(p) { return p.nickname === currentPlayer.nickname; });
+    if (me && me.color && me.color !== currentPlayer.color) {
+        currentPlayer.color = me.color;
+        applyColorSelection(me.color);
+    }
+}
 
+// ── 玩家列表渲染 ───────────────────────────────────
+function renderPlayersList() {
+    const container = document.getElementById('playersList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    playersList.forEach(function(player) {
+        const tag = document.createElement('div');
+        tag.className = 'player-tag' + (player.nickname === currentPlayer.nickname ? ' me' : '');
+
+        const dot = document.createElement('span');
+        dot.className = 'player-dot';
+        dot.style.background = player.color || '#ccc';
+        dot.style.borderColor = player.color || '#ccc';
+
+        const label = document.createElement('span');
+        label.textContent = player.nickname + (player.nickname === currentPlayer.nickname ? '（你）' : '');
+
+        tag.appendChild(dot);
+        tag.appendChild(label);
+        container.appendChild(tag);
+    });
+}
+
+// ── 遊戲板渲染 ─────────────────────────────────────
 function renderGameBoard() {
-    const room = getRoom(currentPlayer.roomId);
-    const gameBoard = room ? room.gameBoard : createEmptyRoom().gameBoard;
+    if (!gameState) return;
 
     const boardEl = document.getElementById('gameBoard');
     boardEl.innerHTML = '';
 
-    for (let floor = 0; floor < FLOORS; floor++) {
+    // 產生 floor 1 ~ 10（CSS flex-direction:column-reverse 讓 floor 1 顯示在最下方）
+    for (let floor = 1; floor <= FLOORS; floor++) {
         const floorDiv = document.createElement('div');
         floorDiv.className = 'floor';
 
         const label = document.createElement('div');
         label.className = 'floor-label';
-        label.textContent = '第' + (floor + 1) + '層';
+        label.textContent = '第' + floor + '層';
         floorDiv.appendChild(label);
 
         const boxesDiv = document.createElement('div');
         boxesDiv.className = 'number-boxes';
 
-        for (let pos = 0; pos < 4; pos++) {
-            const cell = gameBoard[floor][pos];
+        for (let pos = 1; pos <= 4; pos++) {
+            const cell = gameState[floor] ? gameState[floor][pos] : null;
             const box = document.createElement('div');
             box.className = 'number-box';
-            box.textContent = pos + 1;
+            box.textContent = pos;
             box.dataset.floor = floor;
             box.dataset.pos = pos;
 
@@ -200,7 +217,6 @@ function renderGameBoard() {
 }
 
 // ── 點擊數字方框 ───────────────────────────────────
-
 function handleBoxClick() {
     if (!currentPlayer.color) {
         alert('請先選擇你的代表顏色！');
@@ -210,23 +226,12 @@ function handleBoxClick() {
     const floor = parseInt(this.dataset.floor);
     const pos = parseInt(this.dataset.pos);
 
-    const room = getRoom(currentPlayer.roomId);
-    if (!room) return;
+    if (!gameState || !gameState[floor]) return;
 
-    const cell = room.gameBoard[floor][pos];
+    const cell = gameState[floor][pos];
 
-    // 本人在此樓已有的選擇
-    let myCurrentPos = -1;
-    for (let i = 0; i < 4; i++) {
-        const c = room.gameBoard[floor][i];
-        if (c && c.nickname === currentPlayer.nickname) {
-            myCurrentPos = i;
-            break;
-        }
-    }
-
-    // 點擊已是本人選擇的同一格，不做任何事
-    if (myCurrentPos === pos) {
+    // 點擊的是本人已選的同一格，不做任何事
+    if (cell && cell.nickname === currentPlayer.nickname) {
         return;
     }
 
@@ -235,28 +240,15 @@ function handleBoxClick() {
         if (!confirm('是否確定要覆蓋？')) return;
     }
 
-    // 清除本人在此樓的舊選擇
-    if (myCurrentPos !== -1) {
-        room.gameBoard[floor][myCurrentPos] = null;
-    }
-
-    room.gameBoard[floor][pos] = { nickname: currentPlayer.nickname, color: currentPlayer.color };
-    saveRoom(currentPlayer.roomId, room);
-    renderGameBoard();
+    socket.emit('select-position', { floor: floor, position: pos });
 }
 
 // ── 重設 ───────────────────────────────────────────
-
 function handleReset() {
-    const room = getRoom(currentPlayer.roomId);
-    if (!room) return;
-    room.gameBoard = Array.from({ length: FLOORS }, function() { return Array(4).fill(null); });
-    saveRoom(currentPlayer.roomId, room);
-    renderGameBoard();
+    socket.emit('reset-game');
 }
 
 // ── 初始化 ─────────────────────────────────────────
-
 window.addEventListener('DOMContentLoaded', function() {
     document.getElementById('createRoomBtn').addEventListener('click', handleCreateRoom);
     document.getElementById('enterGameBtn').addEventListener('click', handleEnterGame);
